@@ -56,7 +56,7 @@ def choose_thing():
     stone = types.InlineKeyboardButton(text='Камень', callback_data='stone')
     scissors = types.InlineKeyboardButton(text='Ножницы', callback_data='scissors')
     paper = types.InlineKeyboardButton(text='Бумага', callback_data='paper')
-    back = types.InlineKeyboardButton(text='Назад', callback_data='back')
+    back = types.InlineKeyboardButton(text='Завершить', callback_data='back')
     kb.add(stone, scissors, paper, back)
     return kb
 
@@ -71,7 +71,27 @@ def choose_thing1():
     stone = types.InlineKeyboardButton(text='Stone', callback_data='stone1')
     scissors = types.InlineKeyboardButton(text='Scissors', callback_data='scissors1')
     paper = types.InlineKeyboardButton(text='Paper', callback_data='paper1')
-    back = types.InlineKeyboardButton(text='Back', callback_data='back1')
+    back = types.InlineKeyboardButton(text='Complete', callback_data='back1')
     kb.add(stone, scissors, paper, back)
+    return kb
+
+def calculator_operation():
+    kb = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    button1 = types.KeyboardButton('+')
+    button2 = types.KeyboardButton('-')
+    button3 = types.KeyboardButton('*')
+    button4 = types.KeyboardButton(':')
+    kb.add(button1, button2)
+    kb.add(button3, button4)
+    return kb
+
+def calculator_operation1():
+    kb = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    button1 = types.KeyboardButton('+')
+    button2 = types.KeyboardButton('-')
+    button3 = types.KeyboardButton('*')
+    button4 = types.KeyboardButton(':')
+    kb.add(button1, button2)
+    kb.add(button3, button4)
     return kb
 

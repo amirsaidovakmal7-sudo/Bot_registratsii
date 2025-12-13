@@ -10,31 +10,40 @@ def start(message):
     user_id = message.from_user.id
     bot.send_message(user_id, 'Выбери язык',
                      reply_markup=buttons.button_language())
-@bot.message_handler(content_types=['text'])
+@bot.message_handler(func=lambda m: m.text in ['Рус', 'Eng'])
 def full_language_programm(message):
     user_id = message.from_user.id
     user_language = message.text
     if user_language == 'Рус':
         username = message.from_user.username
         if db.check(user_id):
-            bot.send_message(user_id, f'Приветствую {username}. Хочешь узнаю твой возраст?'
+            bot.send_message(user_id, f'Приветствую {username}. Хочешь узнаю твой возраст? '
                                       f'Введи свой год рождения',
                              reply_markup=telebot.types.ReplyKeyboardRemove())
             bot.register_next_step_handler(message, age, user_language)
         else:
-            bot.send_message(user_id, 'Давай начнем регистрацию, напиши свое имя')
+            bot.send_message(user_id, 'Давай начнем регистрацию, напиши свое имя',
+                             reply_markup=telebot.types.ReplyKeyboardRemove())
 
             bot.register_next_step_handler(message, getname, user_language)
     elif user_language == 'Eng':
         if db.check(user_id):
             username = message.from_user.username
-            bot.send_message(user_id, f'Hello {username}. Do you want me to know your age?'
+            bot.send_message(user_id, f'Hello {username}. Do you want me to know your age? '
                                       f'Enter your year of birth',
                              reply_markup=telebot.types.ReplyKeyboardRemove())
             bot.register_next_step_handler(message, age, user_language)
         else:
-            bot.send_message(user_id, 'Let start the regestration, enter your name')
+            bot.send_message(user_id, 'Let start the regestration, enter your name',
+                             reply_markup=telebot.types.ReplyKeyboardRemove())
             bot.register_next_step_handler(message, getname, user_language)
+    else:
+        bot.send_message(user_id, 'Язык выбран неверно. Выбери по кнопке')
+        bot.send_message(user_id, 'Language was choosen incorrectly. Choose by button',
+                         reply_markup=buttons.button_language())
+        bot.register_next_step_handler(message, full_language_programm)
+
+
 
 
 
@@ -110,42 +119,63 @@ def getlocation(message, user_name, user_number, user_language):
 
 
 def age(message, user_language):
-    user_id = message.from_user.id
-    user_age = message.text
-    year = 2025
-    user_age1 = int(user_age)
-    year-= user_age1
-    if user_language == 'Рус':
-        bot.send_message(user_id, f'Твой возраст: {year} лет')
-        bot.send_message(user_id, 'В этом боте есть калькулятор, хочешь  попробовать?',
-                         reply_markup=buttons.button3())
-        bot.register_next_step_handler(message, calculator, user_language)
-    elif user_language == 'Eng':
-        bot.send_message(user_id, f'Your age: {year} years old')
-        bot.send_message(user_id, 'This bot hs a calculator, do you wana try?',
-                         reply_markup=buttons.button6())
-        bot.register_next_step_handler(message, calculator, user_language)
+    try:
+        user_id = message.from_user.id
+        user_age = message.text
+        year = 2025
+        user_age1 = int(user_age)
+        year -= user_age1
+        if user_language == 'Рус':
+            bot.send_message(user_id, f'Твой возраст: {year} лет')
+            bot.send_message(user_id, 'В этом боте есть калькулятор, хочешь  попробовать?',
+                             reply_markup=buttons.button3())
+            bot.register_next_step_handler(message, calculator, user_language)
+        elif user_language == 'Eng':
+            bot.send_message(user_id, f'Your age: {year} years old')
+            bot.send_message(user_id, 'This bot hs a calculator, do you wana try?',
+                             reply_markup=buttons.button6())
+            bot.register_next_step_handler(message, calculator, user_language)
+    except ValueError:
+        if user_language == 'Рус':
+            bot.send_message(message.from_user.id, 'Что-то пошло не так. Введи свой год рождения корректно')
+            bot.register_next_step_handler(message, age, user_language)
+        elif user_language == 'Eng':
+            bot.send_message(message.from_user.id, 'Something went wrong. Write your date of birth correctly')
+            bot.register_next_step_handler(message, age, user_language)
+
 
 def calculator(message, user_language):
     user_id = message.from_user.id
     if user_language == 'Рус':
         if message.text.lower() == 'нет':
-            bot.send_message(user_id, 'Ну ладно( А еще в боте есть игра камень ножницы '
+            bot.send_message(user_id, 'Ну ладно(',
+                             reply_markup=telebot.types.ReplyKeyboardRemove())
+            bot.send_message(user_id, 'А еще в боте есть игра камень ножницы '
                                       'бумага. хочешь попробовать?',
                              reply_markup=buttons.button_stone_paper())
         elif message.text.lower() == 'да':
             bot.send_message(user_id, 'Введи первое число',
                              reply_markup=telebot.types.ReplyKeyboardRemove())
             bot.register_next_step_handler(message, calculator2, user_language)
+        else:
+            bot.send_message(user_id, 'Неверный ответ, отправь по кнопке',
+                             reply_markup=buttons.button3())
+            bot.register_next_step_handler(message, calculator, user_language)
     elif user_language == 'Eng':
         if message.text.lower() == 'no':
-            bot.send_message(user_id, 'Okay(. The bot also has a game called "stone, paper, scissors." '
+            bot.send_message(user_id, 'Okay(',
+                             reply_markup=telebot.types.ReplyKeyboardRemove())
+            bot.send_message(user_id, 'The bot also has a game called "stone, paper, scissors." '
                                       'Want to try it?',
                              reply_markup=buttons.button_stone_paper1())
         elif message.text.lower() == 'yes':
             bot.send_message(user_id, 'Enter first number',
                              reply_markup=telebot.types.ReplyKeyboardRemove())
             bot.register_next_step_handler(message, calculator2, user_language)
+        else:
+            bot.send_message(user_id, 'Wrong answer. Choose "yes" or "no"',
+                             reply_markup=buttons.button6())
+            bot.register_next_step_handler(message, calculator, user_language)
 
 
 def calculator2(message, user_language):
@@ -161,83 +191,116 @@ def calculator3(message, user_num1, user_language):
     user_id = message.from_user.id
     user_num2 = message.text
     if user_language == 'Рус':
-        bot.send_message(user_id, 'Выбери операцию:'
-                                  '+, -, *(умножение), /(деление)')
+        bot.send_message(user_id, 'Выбери операцию: ',
+                         reply_markup=buttons.calculator_operation())
         bot.register_next_step_handler(message, calculator4, user_num1, user_num2, user_language)
     elif user_language == 'Eng':
-        bot.send_message(user_id, 'Choose operation:'
-                                  '+, -, *(multiplication), /(division)')
+        bot.send_message(user_id, 'Choose operation: ',
+                         reply_markup=buttons.calculator_operation1())
         bot.register_next_step_handler(message, calculator4, user_num1, user_num2, user_language)
 
 def calculator4(message, user_num1, user_num2, user_language):
     user_id = message.from_user.id
     user_operation = message.text
-    if user_operation == '+':
-        user_num3 = int(user_num1)
-        user_num4 = int(user_num2)
-        user_ans = user_num3 + user_num4
-        if user_language == 'Рус':
-            bot.send_message(user_id, f'Результат = {user_ans}. А еще в боте есть игра '
-                                      f'камень ножницы бумага, хочешь попробовать?',
-                             reply_markup=buttons.button_stone_paper())
-        elif user_language == 'Eng':
-            bot.send_message(user_id, f'Answer = {user_ans}. The bot also has a game called "stone, paper, scissors." '
-                                      f'Want to try it?',
-                             reply_markup=buttons.button_stone_paper1())
-    elif user_operation == '-':
-        user_num3 = int(user_num1)
-        user_num4 = int(user_num2)
-        user_ans = user_num3 - user_num4
-        if user_language == 'Рус':
-            bot.send_message(user_id, f'Результат = {user_ans}. А еще в боте есть игра '
-                                      f'камень ножницы бумага, хочешь попробовать?',
-                             reply_markup=buttons.button_stone_paper())
-        elif user_language == 'Eng':
-            bot.send_message(user_id, f'Answer = {user_ans}. The bot also has a game called "stone, paper, scissors." '
-                                      f'Want to try it?',
-                             reply_markup=buttons.button_stone_paper1())
-    elif user_operation == '*':
-        user_num3 = int(user_num1)
-        user_num4 = int(user_num2)
-        user_ans = user_num3 * user_num4
-        if user_language == 'Рус':
-            bot.send_message(user_id, f'Результат = {user_ans}. А еще в боте есть игра '
-                                      f'камень ножницы бумага, хочешь попробовать?',
-                             reply_markup=buttons.button_stone_paper())
-        elif user_language == 'Eng':
-            bot.send_message(user_id, f'Answer = {user_ans}. The bot also has a game called "stone, paper, scissors."'
-                                      f' Want to try it?',
-                             reply_markup=buttons.button_stone_paper1())
-    elif user_operation == '/':
-        user_num3 = int(user_num1)
-        user_num4 = int(user_num2)
-        user_ans = user_num3 / user_num4
-        if user_language == 'Рус':
-            bot.send_message(user_id, f'Результат = {user_ans}',
-                             reply_markup=buttons.button_stone_paper())
+    try:
+        if user_operation == '+':
+            user_num3 = int(user_num1)
+            user_num4 = int(user_num2)
+            user_ans = user_num3 + user_num4
+            if user_language == 'Рус':
+                bot.send_message(user_id, f'Результат = {user_ans}',
+                                 reply_markup=telebot.types.ReplyKeyboardRemove())
+                bot.send_message(user_id, 'А еще в боте есть игра '
+                                          f'камень ножницы бумага, хочешь попробовать?',
+                                 reply_markup=buttons.button_stone_paper())
+            elif user_language == 'Eng':
+                bot.send_message(user_id, f'Answer = {user_ans}',
+                                 reply_markup=telebot.types.ReplyKeyboardRemove())
+                bot.send_message(user_id, 'The bot also has a game called "stone, paper, scissors."'
+                                          f' Want to try it?',
+                                 reply_markup=buttons.button_stone_paper1())
+        elif user_operation == '-':
+            user_num3 = int(user_num1)
+            user_num4 = int(user_num2)
+            user_ans = user_num3 - user_num4
+            if user_language == 'Рус':
+                bot.send_message(user_id, f'Результат = {user_ans}',
+                                 reply_markup=telebot.types.ReplyKeyboardRemove())
+                bot.send_message(user_id, 'А еще в боте есть игра '
+                                          f'камень ножницы бумага, хочешь попробовать?',
+                                 reply_markup=buttons.button_stone_paper())
+            elif user_language == 'Eng':
+                bot.send_message(user_id, f'Answer = {user_ans}',
+                                 reply_markup=telebot.types.ReplyKeyboardRemove())
+                bot.send_message(user_id, 'The bot also has a game called "stone, paper, scissors."'
+                                          f' Want to try it?',
+                                 reply_markup=buttons.button_stone_paper1())
+        elif user_operation == '*':
+            user_num3 = int(user_num1)
+            user_num4 = int(user_num2)
+            user_ans = user_num3 * user_num4
+            if user_language == 'Рус':
+                bot.send_message(user_id, f'Результат = {user_ans}',
+                                 reply_markup=telebot.types.ReplyKeyboardRemove())
+                bot.send_message(user_id, 'А еще в боте есть игра '
+                                          f'камень ножницы бумага, хочешь попробовать?',
+                                 reply_markup=buttons.button_stone_paper())
+            elif user_language == 'Eng':
+                bot.send_message(user_id, f'Answer = {user_ans}',
+                                 reply_markup=telebot.types.ReplyKeyboardRemove())
+                bot.send_message(user_id, 'The bot also has a game called "stone, paper, scissors."'
+                                          f' Want to try it?',
+                                 reply_markup=buttons.button_stone_paper1())
+        elif user_operation == ':':
+            user_num3 = int(user_num1)
+            user_num4 = int(user_num2)
+            user_ans = user_num3 / user_num4
+            if user_language == 'Рус':
+                bot.send_message(user_id, f'Результат = {user_ans}',
+                                 reply_markup=telebot.types.ReplyKeyboardRemove())
+                bot.send_message(user_id, 'А еще в боте есть игра '
+                                          f'камень ножницы бумага, хочешь попробовать?',
+                                 reply_markup=buttons.button_stone_paper())
 
-        elif user_language == 'Eng':
-            bot.send_message(user_id, f'Answer = {user_ans}. The bot also has a game called "stone, paper, scissors."'
-                                      f' Want to try it?',
-                             reply_markup=buttons.button_stone_paper1())
-    else:
+            elif user_language == 'Eng':
+                bot.send_message(user_id, f'Answer = {user_ans}',
+                                 reply_markup=telebot.types.ReplyKeyboardRemove())
+                bot.send_message(user_id, 'The bot also has a game called "stone, paper, scissors."'
+                                          f' Want to try it?',
+                                 reply_markup=buttons.button_stone_paper1())
+        else:
+            if user_language == 'Рус':
+                bot.send_message(user_id, 'Не знаю такой операции, выбери по кнопке')
+                bot.register_next_step_handler(message, calculator4, user_num1, user_num2, user_language)
+            elif user_language == 'Eng':
+                bot.send_message(user_id, 'I dont know this operation(Choose by button')
+                bot.register_next_step_handler(message, calculator4, user_num1, user_num2, user_language)
+    except Exception:
         if user_language == 'Рус':
-            bot.send_message(user_id, 'Незнаю такой операции(')
-            bot.register_next_step_handler(message, calculator, user_language)
+            bot.send_message(user_id, 'Что-то пошло не так. '
+                                      'Введи первое и второе число правильно',
+                             reply_markup=telebot.types.ReplyKeyboardRemove())
+            bot.register_next_step_handler(message, calculator2, user_language)
         elif user_language == 'Eng':
-            bot.send_message(user_id, 'I dont know this operation(')
-            bot.register_next_step_handler(message, calculator, user_language)
-
+            bot.send_message(user_id, 'Something went wrong. '
+                                      'Enter first and second number correctly',
+                             reply_markup=telebot.types.ReplyKeyboardRemove())
+            bot.register_next_step_handler(message, calculator2, user_language)
 
 @bot.callback_query_handler(lambda call: call.data in ['yes', 'no'])
 def game(call):
     values = call.data
     user_id = call.message.chat.id
     if values == 'no':
-        bot.send_message(user_id, 'Ну ладно(')
+        bot.delete_message(chat_id=user_id, message_id=call.message.message_id)
+        bot.send_message(user_id, 'Хорошо(')
     elif values == 'yes':
        bot.send_message(user_id, 'Выбери предмет',
                         reply_markup=buttons.choose_thing())
+    else:
+        bot.send_message(user_id, 'Неверный ответ, выбери да или нет по кнопке',
+                         reply_markup=buttons.button_stone_paper())
+        bot.register_next_step_handler(call, game)
 
 
 @bot.callback_query_handler(lambda call: call.data in ['stone', 'scissors', 'paper', 'back'])
@@ -290,6 +353,11 @@ def choice(call):
         bot.send_message(user_id, 'Игра окончена!',
                         reply_markup=telebot.types.ReplyKeyboardRemove())
 
+    else:
+        bot.send_message(user_id, 'Что то пошло не так, нажми по кнпоке',
+                        reply_markup=buttons.choose_thing())
+
+
 
 @bot.callback_query_handler(lambda call: call.data in ['yes1', 'no1'])
 def game1(call):
@@ -300,6 +368,10 @@ def game1(call):
     elif values == 'yes1':
        bot.send_message(user_id, 'Choose item',
                         reply_markup=buttons.choose_thing1())
+    else:
+        bot.send_message(user_id, 'Something went wrong. Choose "yes" or "no"',
+                         reply_markup=buttons.button_stone_paper())
+        bot.register_next_step_handler(call, game1)
 
 
 @bot.callback_query_handler(lambda call: call.data in ['stone1', 'scissors1', 'paper1', 'back1'])
@@ -351,6 +423,10 @@ def choice1(call):
     elif call.data == 'back1':
         bot.send_message(user_id, 'Game finished!',
                         reply_markup=telebot.types.ReplyKeyboardRemove())
+    else:
+        bot.send_message(user_id, 'Something went  wrong, click the button',
+                        reply_markup=buttons.choose_thing1())
+
 
 
 bot.polling(none_stop=True)
